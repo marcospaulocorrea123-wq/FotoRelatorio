@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1976d2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/estilo.css">
+  <title>Meus Relatórios - FotoRelatório</title>
+</head>
+<body>
+  <main class="pagina-lista">
+    <section class="cartao-lista">
+      <div class="cabecalho-lista">
+        <h1>Meus Relatórios Salvos</h1>
+        <button type="button" class="btn-voltar-topo" onclick="window.location.href='index.html'">← Início</button>
+      </div>
+
+      <!-- CAMPO DE PESQUISA -->
+      <div class="caixa-pesquisa">
+        <label for="campoPesquisa" style="display:block; margin-bottom: 6px; font-weight: bold; font-size: 13px; color: #333;">🔍 Pesquisar Relatórios:</label>
+        <input 
+          type="text" 
+          id="campoPesquisa" 
+          class="input-pesquisa" 
+          placeholder="Digite assunto, unidade, local, equipamento, data ou nome..." 
+          onkeyup="filtrarRelatorios(this.value)"
+          oninput="filtrarRelatorios(this.value)">
+      </div>
+
+      <div id="contadorResultados" class="contador-resultados"></div>
+
+      <!-- CONTAINER DA LISTA -->
+      <div id="listaRelatorios" class="conteiner-relatorios">
+        <p class="mensagem-carregando">Carregando relatórios...</p>
+      </div>
+
+      <button type="button" class="btn-voltar-home" onclick="window.location.href='index.html'">← Voltar para o Início</button>
+    </section>
+  </main>
+
+  <script src="js/db.js"></script>
+  <script>
+    let todosRelatorios = [];
+
+    async function carregarRelatorios() {
+      try {
+        todosRelatorios = await obterTodosRelatoriosDoDB();
+        exibirRelatorios(todosRelatorios, false);
+      } catch (err) {
+        document.getElementById("listaRelatorios").innerHTML = 
+          '<p class="mensagem-vazia">Erro ao carregar relatórios salvos: ' + err + '</p>';
+      }
+    }
+
+    function filtrarRelatorios(termo) {
+      if (!termo || termo.trim() === "") {
+        exibirRelatorios(todosRelatorios, false);
+        return;
+      }
+
+      const termoBusca = termo.toLowerCase().trim();
+      const filtrados = todosRelatorios.filter(r => {
+        const assunto = (r.assunto || "").toLowerCase();
+        const unidade = (r.unidade || "").toLowerCase();
+        const local = (r.local || "").toLowerCase();
+        const equipamento = (r.equipamento || "").toLowerCase();
+        const nome = (r.nome || "").toLowerCase();
+        const data = (r.data || "").toLowerCase();
+
+        return assunto.includes(termoBusca) ||
+               unidade.includes(termoBusca) ||
+               local.includes(termoBusca) ||
+               equipamento.includes(termoBusca) ||
+               nome.includes(termoBusca) ||
+               data.includes(termoBusca);
+      });
+
+      exibirRelatorios(filtrados, true);
+    }
+
+    function exibirRelatorios(lista, foiFiltrado) {
+      const container = document.getElementById("listaRelatorios");
+      const contador = document.getElementById("contadorResultados");
+
+      if (!lista || lista.length === 0) {
+        contador.innerText = "";
+        container.innerHTML = foiFiltrado 
+          ? '<p class="mensagem-vazia">Nenhum relatório encontrado para o termo pesquisado.</p>'
+          : '<p class="mensagem-vazia">Nenhum relatório salvo no aparelho ainda.</p>';
+        return;
+      }
+
+      if (foiFiltrado) {
+        contador.innerText = "Encontrado(s) " + lista.length + " relatório(s)";
+      } else {
+        contador.innerText = "Total: " + lista.length + " relatório(s) salvo(s)";
+      }
+
+      let html = "";
+      lista.forEach(r => {
+        const dataFmt = formatarData(r.data);
+        const localText = r.local ? '<p><strong>Local:</strong> ' + escaparHTML(r.local) + '</p>' : '';
+        const nomeText = r.nome ? '<p><strong>Elaborado por:</strong> ' + escaparHTML(r.nome) + '</p>' : '';
+
+        html += '<div class="cartao-relatorio-salvo">' +
+            '<h3>' + (escaparHTML(r.assunto) || "Sem assunto") + '</h3>' +
+            '<p><strong>Data:</strong> ' + (dataFmt || "Não informada") + '</p>' +
+            '<p><strong>Unidade:</strong> ' + (escaparHTML(r.unidade) || "Não informada") + '</p>' +
+            localText +
+            nomeText +
+            '<div class="acoes-cartao">' +
+              '<button type="button" class="btn-abrir" onclick="abrirRelatorio(' + r.id + ')">✏️ Abrir / Editar</button>' +
+              '<button type="button" class="btn-deletar" onclick="confirmarExclusao(' + r.id + ')">🗑️ Excluir</button>' +
+            '</div>' +
+          '</div>';
+      });
+
+      container.innerHTML = html;
+    }
+
+    function abrirRelatorio(id) {
+      window.location.href = "novoRelatorio.html?id=" + id;
+    }
+
+    async function confirmarExclusao(id) {
+      if (confirm("Tem certeza que deseja excluir este relatório do seu aparelho?")) {
+        try {
+          await excluirRelatorioDoDB(id);
+          todosRelatorios = todosRelatorios.filter(r => r.id !== id);
+          filtrarRelatorios(document.getElementById("campoPesquisa").value);
+        } catch (e) {
+          alert("Erro ao excluir relatório: " + e);
+        }
+      }
+    }
+
+    function formatarData(data) {
+      if (!data) return "";
+      const partes = data.split("-");
+      return partes.length === 3 ? partes[2] + "/" + partes[1] + "/" + partes[0] : data;
+    }
+
+    function escaparHTML(texto) {
+      if (!texto) return "";
+      return String(texto).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    window.addEventListener("DOMContentLoaded", carregarRelatorios);
+  </script>
+</body>
+</html>

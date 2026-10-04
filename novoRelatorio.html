@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1976d2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/estilo.css">
+  <title>Novo Relatório - FotoRelatório</title>
+</head>
+<body>
+  <main class="pagina-relatorio">
+    <!-- ESCOLHA DO TIPO DE RELATÓRIO -->
+    <section class="escolha-relatorio" id="secaoEscolha">
+      <h1>Novo Relatório</h1>
+      <p>Escolha o tipo de relatório:</p>
+      <div class="botoes-tipo-grade">
+        <button type="button" onclick="iniciarRelatorio('simplificado')">Simplificado (Apenas Fotos)</button>
+        <button type="button" onclick="iniciarRelatorio('completo')">Completo (Fotos + Dados)</button>
+        <button type="button" onclick="iniciarRelatorio('simplificado_texto')">Simplificado + Texto e Conclusão</button>
+        <button type="button" onclick="iniciarRelatorio('completo_texto')">Completo + Texto e Conclusão</button>
+      </div>
+      <button type="button" class="btn-voltar-home" onclick="window.location.href='index.html'">← Voltar para o Início</button>
+    </section>
+
+    <!-- CONFIGURAÇÃO DOS DADOS DO RELATÓRIO -->
+    <section id="configuracao" class="configuracao" style="display:none;">
+      <div class="cabecalho-secao">
+        <h2>Dados do Relatório</h2>
+        <button type="button" class="btn-voltar-topo" onclick="voltarParaEscolha()">← Voltar</button>
+      </div>
+      
+      <div class="campo-configuracao">
+        <label>Logo da Empresa</label>
+        <input type="file" id="arquivoLogo" accept="image/*">
+        <div id="previewLogo" class="preview-logo">Nenhum logo selecionado</div>
+        <button type="button" id="btnRemoverLogo" style="display:none; margin-top:6px; background:#d32f2f; color:white; border:none; padding:4px 8px; border-radius:3px; font-size:11px; cursor:pointer;" onclick="removerLogo()">Remover Logo</button>
+      </div>
+
+      <div class="campo-configuracao">
+        <label>Assunto do relatório</label>
+        <input type="text" id="assunto" placeholder="Assunto do relatório">
+      </div>
+
+      <div class="campo-configuracao">
+        <label>Data</label>
+        <input type="date" id="data">
+      </div>
+
+      <div class="campo-configuracao">
+        <label>Unidade</label>
+        <input type="text" id="unidade" placeholder="Unidade" oninput="salvarDadosPadrao()">
+      </div>
+
+      <!-- CAMPOS EXTRAS DO RELATÓRIO COMPLETO -->
+      <section id="dadosCompletos" class="dados-completos" style="display:none;">
+        <h3>Informações do Serviço</h3>
+        <div class="campo-configuracao">
+          <label>Local / Instalação</label>
+          <input type="text" id="local" placeholder="Local / Instalação">
+        </div>
+        <div class="campo-configuracao">
+          <label>Equipamento</label>
+          <input type="text" id="equipamento" placeholder="Equipamento">
+        </div>
+        <div class="campo-configuracao">
+          <label>TAG</label>
+          <input type="text" id="tag" placeholder="TAG">
+        </div>
+        <div class="campo-configuracao">
+          <label>Tipo de serviço</label>
+          <input type="text" id="tipoServico" placeholder="Tipo de serviço">
+        </div>
+      </section>
+
+      <!-- SEÇÃO DE INTRODUÇÃO E CONCLUSÃO -->
+      <section id="secaoCamposTexto" style="display:none; margin-top:15px; border-top:1px solid #ccc; padding-top:15px;">
+        <h3>Textos do Relatório</h3>
+        <div class="campo-configuracao">
+          <label>Título da Introdução</label>
+          <input type="text" id="tituloIntroducao" placeholder="Ex: 1. INTRODUÇÃO" value="1. INTRODUÇÃO">
+        </div>
+        <div class="campo-configuracao">
+          <label>Subtítulo da Introdução</label>
+          <input type="text" id="subtituloIntroducao" placeholder="Ex: 1.1 Contextualização e Objetivo">
+        </div>
+        <div class="campo-configuracao">
+          <label>Texto da Introdução</label>
+          <textarea id="textoIntroducao" rows="4" placeholder="Digite o texto de introdução..." oninput="atualizarRelatorioSeAberto()"></textarea>
+        </div>
+        <div class="campo-configuracao">
+          <label>Título da Conclusão</label>
+          <input type="text" id="tituloConclusao" placeholder="Ex: 3. CONCLUSÃO" value="3. CONCLUSÃO">
+        </div>
+        <div class="campo-configuracao">
+          <label>Texto de Conclusão / Considerações Finais</label>
+          <textarea id="textoConclusao" rows="3" placeholder="Digite a conclusão final do relatório..." oninput="atualizarRelatorioSeAberto()"></textarea>
+        </div>
+      </section>
+
+      <!-- DADOS DO ELABORADOR -->
+      <section class="dados-elaborador">
+        <h3>Elaborado por</h3>
+        <div class="campo-configuracao">
+          <label>Nome</label>
+          <input type="text" id="nome" placeholder="Nome" oninput="salvarDadosPadrao()">
+        </div>
+        <div class="campo-configuracao">
+          <label>Sigla da unidade</label>
+          <input type="text" id="sigla" placeholder="Sigla" oninput="salvarDadosPadrao()">
+        </div>
+        <div class="campo-configuracao">
+          <label>Cargo</label>
+          <input type="text" id="cargo" placeholder="Cargo" oninput="salvarDadosPadrao()">
+        </div>
+      </section>
+
+      <div class="botoes-acao-config">
+        <button type="button" class="btn-voltar-secundario" onclick="voltarParaEscolha()">← Voltar</button>
+        <button type="button" class="botao-continuar" onclick="abrirRelatorio()">Criar Relatório</button>
+      </div>
+    </section>
+
+    <!-- BARRA DE AÇÕES DO RELATÓRIO -->
+    <div id="barraAcoes" class="barra-acoes" style="display:none;">
+      <button type="button" class="btn-acao btn-home" onclick="window.location.href='index.html'">🏠 Início</button>
+      <button type="button" id="btnEditarDados" class="btn-acao btn-voltar" onclick="voltarParaEdicao()">← Editar Dados</button>
+      <button type="button" id="btnAlternarPreview" class="btn-acao btn-preview" onclick="alternarModoPreview()">👁️ Pré-visualizar Relatório</button>
+      <button type="button" id="btnSalvarLocal" class="btn-acao btn-salvar" onclick="salvarRelatorioLocal()">💾 Salvar no Aparelho</button>
+      <button type="button" id="btnImprimirPDF" class="btn-acao btn-imprimir" onclick="window.print()">🖨️ Imprimir / Gerar PDF</button>
+    </div>
+
+    <!-- ÁREA DO RELATÓRIO EM FOLHAS A4 -->
+    <section id="areaRelatorio" style="display:none;"></section>
+  </main>
+
+  <script src="js/db.js"></script>
+  <script>
+    let tipoRelatorio = "simplificado";
+    let logoSelecionado = "";
+    let campos = []; 
+    let relatorioIdAtual = null;
+    let modoPreview = false;
+
+    // Preenche a data atual por padrão
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    const dia = String(hoje.getDate()).padStart(2, "0");
+    document.getElementById("data").value = ano + "-" + mes + "-" + dia;
+
+    function iniciarRelatorio(tipo) {
+      tipoRelatorio = tipo;
+      document.getElementById("secaoEscolha").style.display = "none";
+      document.getElementById("configuracao").style.display = "block";
+      
+      const ehCompleto = tipo.includes("completo");
+      const temTexto = tipo.includes("texto");
+
+      document.getElementById("dadosCompletos").style.display = ehCompleto ? "block" : "none";
+      document.getElementById("secaoCamposTexto").style.display = temTexto ? "block" : "none";
+    }
+
+    function voltarParaEscolha() {
+      document.getElementById("configuracao").style.display = "none";
+      document.getElementById("secaoEscolha").style.display = "block";
+    }
+
+    function atualizarPreviewLogo() {
+      const preview = document.getElementById("previewLogo");
+      const btnRemover = document.getElementById("btnRemoverLogo");
+      if (logoSelecionado) {
+        preview.innerHTML = '<img src="' + logoSelecionado + '" alt="Logo">';
+        btnRemover.style.display = "inline-block";
+      } else {
+        preview.innerHTML = "Nenhum logo selecionado";
+        btnRemover.style.display = "none";
+      }
+    }
+
+    function removerLogo() {
+      logoSelecionado = "";
+      localStorage.removeItem("ultimoLogo");
+      document.getElementById("arquivoLogo").value = "";
+      atualizarPreviewLogo();
+      atualizarRelatorioSeAberto();
+    }
+
+    function salvarDadosPadrao() {
+      localStorage.setItem("ultimaUnidade", document.getElementById("unidade").value);
+      localStorage.setItem("ultimoNome", document.getElementById("nome").value);
+      localStorage.setItem("ultimaSigla", document.getElementById("sigla").value);
+      localStorage.setItem("ultimoCargo", document.getElementById("cargo").value);
+    }
+
+    function carregarDadosPadrao() {
+      const u = localStorage.getItem("ultimaUnidade");
+      if (u !== null) document.getElementById("unidade").value = u;
+
+      const n = localStorage.getItem("ultimoNome");
+      if (n !== null) document.getElementById("nome").value = n;
+
+      const s = localStorage.getItem("ultimaSigla");
+      if (s !== null) document.getElementById("sigla").value = s;
+
+      const c = localStorage.getItem("ultimoCargo");
+      if (c !== null) document.getElementById("cargo").value = c;
+    }
+
+    document.getElementById("arquivoLogo").addEventListener("change", function(event) {
+      const arquivos = event.target.files;
+      if (!arquivos || arquivos.length === 0) return;
+      const leitor = new FileReader();
+      leitor.onload = function(e) {
+        logoSelecionado = e.target.result;
+        localStorage.setItem("ultimoLogo", logoSelecionado);
+        atualizarPreviewLogo();
+        atualizarRelatorioSeAberto();
+      };
+      leitor.readAsDataURL(arquivos[0]);
+    });
+
+    function adicionarCampoSilencioso() {
+      campos.push({ descricao: "", fotos: [] });
+    }
+
+    function abrirRelatorio() {
+      salvarDadosPadrao();
+      document.getElementById("configuracao").style.display = "none";
+      document.getElementById("barraAcoes").style.display = "flex";
+      document.getElementById("areaRelatorio").style.display = "block";
+      
+      if (campos.length === 0) {
+        adicionarCampoSilencioso(); // Campo 01
+        adicionarCampoSilencioso(); // Campo 02
+      }
+      atualizarRelatorio();
+    }
+
+    function voltarParaEdicao() {
+      document.getElementById("configuracao").style.display = "block";
+      document.getElementById("barraAcoes").style.display = "none";
+      document.getElementById("areaRelatorio").style.display = "none";
+      if (modoPreview) {
+        alternarModoPreview();
+      }
+    }
+
+    function alternarModoPreview() {
+      modoPreview = !modoPreview;
+      const area = document.getElementById("areaRelatorio");
+      const btnPreview = document.getElementById("btnAlternarPreview");
+      const btnEditarDados = document.getElementById("btnEditarDados");
+
+      if (modoPreview) {
+        area.classList.add("modo-preview");
+        btnPreview.innerHTML = "✏️ Voltar e Editar Relatório";
+        btnPreview.style.background = "#e65100";
+        btnEditarDados.style.display = "none";
+      } else {
+        area.classList.remove("modo-preview");
+        btnPreview.innerHTML = "👁️ Pré-visualizar Relatório";
+        btnPreview.style.background = "#0288d1";
+        btnEditarDados.style.display = "inline-block";
+      }
+      atualizarRelatorio();
+    }
+
+    function adicionarCampo() {
+      campos.push({ descricao: "", fotos: [] });
+      atualizarRelatorio();
+    }
+
+    function removerCampo(idxCampo) {
+      if (campos.length <= 1) {
+        alert("O relatório deve possuir ao menos 1 campo.");
+        return;
+      }
+      campos.splice(idxCampo, 1);
+      atualizarRelatorio();
+    }
+
+    function alterarDescricaoCampo(idxCampo, valor) {
+      campos[idxCampo].descricao = valor;
+    }
+
+    function salvarTextoIntroducaoPagina(el) {
+      const textoFormatado = el.innerText || el.textContent || "";
+      document.getElementById("textoIntroducao").value = textoFormatado;
+    }
+
+    function salvarTextoConclusaoPagina(el) {
+      const textoFormatado = el.innerText || el.textContent || "";
+      document.getElementById("textoConclusao").value = textoFormatado;
+    }
+
+    function formatarParagrafosABNT(texto) {
+      if (!texto || texto.trim() === "") {
+        return '<p class="paragrafo-abnt"><br></p>';
+      }
+      const linhas = texto.split('\n');
+      return linhas.map(linha => {
+        const limpa = linha.trim();
+        if (!limpa) return '<p class="paragrafo-abnt"><br></p>';
+        return '<p class="paragrafo-abnt">' + escaparHTML(linha) + '</p>';
+      }).join('');
+    }
+
+    function ajustarTextarea(el) {
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    }
+
+    function selecionarFotoCampo(idxCampo, idxFoto, arquivos) {
+      if (!arquivos || arquivos.length === 0) return;
+      const arquivoTarget = arquivos[0];
+      const leitor = new FileReader();
+      leitor.onload = function(e) {
+        if (!campos[idxCampo]) {
+          campos[idxCampo] = { descricao: "", fotos: [] };
+        }
+        if (!campos[idxCampo].fotos) {
+          campos[idxCampo].fotos = [];
+        }
+        campos[idxCampo].fotos[idxFoto] = e.target.result;
+        atualizarRelatorio();
+      };
+      leitor.onerror = function(err) {
+        console.error("Erro ao carregar imagem:", err);
+        alert("Erro ao carregar a imagem. Tente novamente.");
+      };
+      leitor.readAsDataURL(arquivoTarget);
+    }
+
+    function removerFotoCampo(idxCampo, idxFoto) {
+      if (campos[idxCampo] && campos[idxCampo].fotos) {
+        campos[idxCampo].fotos.splice(idxFoto, 1);
+        atualizarRelatorio();
+      }
+    }
+
+    function atualizarRelatorioSeAberto() {
+      if (document.getElementById("areaRelatorio").style.display !== "none") {
+        atualizarRelatorio();
+      }
+    }
+
+    function atualizarRelatorio() {
+      document.getElementById("areaRelatorio").innerHTML = criarRelatorio();
+      document.querySelectorAll('.descricao-campo').forEach(el => ajustarTextarea(el));
+    }
+
+    function criarRelatorio() {
+      const assunto = document.getElementById("assunto").value;
+      const data = document.getElementById("data").value;
+      const unidade = document.getElementById("unidade").value;
+      const nome = document.getElementById("nome").value;
+      const sigla = document.getElementById("sigla").value;
+      const cargo = document.getElementById("cargo").value;
+
+      let local = "", equipamento = "", tag = "", tipoServico = "";
+      if (tipoRelatorio.includes("completo")) {
+        local = document.getElementById("local").value;
+        equipamento = document.getElementById("equipamento").value;
+        tag = document.getElementById("tag").value;
+        tipoServico = document.getElementById("tipoServico").value;
+      }
+
+      const temTexto = tipoRelatorio.includes("texto");
+      const textoIntro = temTexto ? document.getElementById("textoIntroducao").value : "";
+      const tituloIntro = temTexto ? (document.getElementById("tituloIntroducao").value || "1. INTRODUÇÃO") : "";
+      const subtituloIntro = temTexto ? document.getElementById("subtituloIntroducao").value : "";
+      const textoConc = temTexto ? document.getElementById("textoConclusao").value : "";
+      const tituloConc = temTexto ? (document.getElementById("tituloConclusao").value || "3. CONCLUSÃO") : "";
+
+      const tamanhoTexto = textoIntro.length;
+      let campo01NaMesmaPagina = true;
+      let classeEscalaFoto = "escala-100";
+
+      if (temTexto && tamanhoTexto > 0) {
+        if (tamanhoTexto <= 250) {
+          classeEscalaFoto = "escala-100";
+        } else if (tamanhoTexto <= 500) {
+          classeEscalaFoto = "escala-75";
+        } else if (tamanhoTexto <= 800) {
+          classeEscalaFoto = "escala-50";
+        } else {
+          campo01NaMesmaPagina = false;
+        }
+      }
+
+      let paginasHTML = "";
+      let numPaginaAtual = 1;
+
+      // 1. SUMÁRIO (NBR 6027)
+      if (temTexto) {
+        const pagFotos = campo01NaMesmaPagina ? 2 : 3;
+        const inicioIndiceRestantes = campo01NaMesmaPagina ? 1 : 0;
+        const qtdRestantes = campos.length - inicioIndiceRestantes;
+        const paginasFotosUsadas = Math.max(1, Math.ceil(qtdRestantes / 2));
+        
+        const ultPaginaFotosIncompleta = (qtdRestantes % 2 === 1);
+        const pagConc = 2 + (campo01NaMesmaPagina ? 0 : 1) + paginasFotosUsadas + (ultPaginaFotosIncompleta ? 0 : 1);
+
+        paginasHTML += criarPaginaCabecalho(numPaginaAtual, assunto, data, unidade, local, equipamento, tag, tipoServico) +
+          '<div class="secao-sumario-nbr">' +
+            '<h3>SUMÁRIO</h3>' +
+            '<div class="item-sumario"><span class="titulo-item">1. INTRODUÇÃO</span><span class="pontilhado"></span><span class="numero-pagina">02</span></div>' +
+            (subtituloIntro ? '<div class="item-sumario recuo"><span class="titulo-item">1.1 ' + escaparHTML(subtituloIntro) + '</span><span class="pontilhado"></span><span class="numero-pagina">02</span></div>' : '') +
+            '<div class="item-sumario"><span class="titulo-item">2. REGISTRO FOTOGRÁFICO</span><span class="pontilhado"></span><span class="numero-pagina">' + String(pagFotos).padStart(2, '0') + '</span></div>' +
+            '<div class="item-sumario"><span class="titulo-item">3. CONCLUSÃO</span><span class="pontilhado"></span><span class="numero-pagina">' + String(pagConc).padStart(2, '0') + '</span></div>' +
+          '</div>' +
+          criarRodape(numPaginaAtual) +
+          '</article>';
+        numPaginaAtual++;
+      }
+
+      // 2. PÁGINA DE INTRODUÇÃO (+ CAMPO 01 LOGO ABAIXO)
+      if (temTexto) {
+        let blocoCampo01Injetado = "";
+
+        if (campo01NaMesmaPagina && campos.length > 0) {
+          const resCampo01 = criarBlocoCampoHTML(campos[0], 0, 1, classeEscalaFoto);
+          blocoCampo01Injetado = resCampo01.html;
+        }
+
+        const editableAttr = !modoPreview ? 'contenteditable="true"' : 'contenteditable="false"';
+
+        paginasHTML += criarPaginaCabecalho(numPaginaAtual, assunto, data, unidade, local, equipamento, tag, tipoServico) +
+          '<section class="secao-introducao-texto">' +
+            '<h3>' + escaparHTML(tituloIntro) + '</h3>' +
+            (subtituloIntro ? '<h4>' + escaparHTML(subtituloIntro) + '</h4>' : '') +
+            '<div class="caixa-texto-editavel-div" ' + editableAttr + ' oninput="salvarTextoIntroducaoPagina(this)">' + formatarParagrafosABNT(textoIntro) + '</div>' +
+          '</section>' +
+          blocoCampo01Injetado +
+          criarRodape(numPaginaAtual) +
+          '</article>';
+
+        numPaginaAtual++;
+      }
+
+      // 3. PÁGINAS DE FOTOS (DIVISÃO ESTRITA DE 2 CAMPOS POR FOLHA)
+      const inicioIndiceCampos = (temTexto && campo01NaMesmaPagina) ? 1 : 0;
+      const camposRestantes = campos.slice(inicioIndiceCampos);
+      const totalPaginasFotos = Math.max(1, Math.ceil(camposRestantes.length / 2));
+      let contadorFotoGlobal = (temTexto && campo01NaMesmaPagina) ? 4 : 1;
+      let conclusaoJaRenderizada = false;
+
+      for (let p = 0; p < totalPaginasFotos; p++) {
+        const offset = inicioIndiceCampos + (p * 2);
+        const parCampos = campos.slice(offset, offset + 2);
+        
+        let blocoCampos = "";
+        parCampos.forEach((c, idx) => {
+          const res = criarBlocoCampoHTML(c, offset + idx, contadorFotoGlobal, "escala-100");
+          blocoCampos += res.html;
+          contadorFotoGlobal = res.proximoContador;
+        });
+
+        const ehUltimaPaginaFotos = (p === totalPaginasFotos - 1);
+        let blocoConclusaoInline = "";
+        
+        if (temTexto && ehUltimaPaginaFotos && parCampos.length === 1) {
+          const editableAttr = !modoPreview ? 'contenteditable="true"' : 'contenteditable="false"';
+          blocoConclusaoInline = '<section class="secao-conclusao-texto" style="margin-top: 10px;">' +
+            '<h3>' + escaparHTML(tituloConc) + '</h3>' +
+            '<div class="caixa-texto-editavel-div" ' + editableAttr + ' oninput="salvarTextoConclusaoPagina(this)">' + formatarParagrafosABNT(textoConc) + '</div>' +
+          '</section>';
+          conclusaoJaRenderizada = true;
+        }
+
+        const ehUltimaFolhaGeral = (!temTexto || conclusaoJaRenderizada) && ehUltimaPaginaFotos;
+        const carimboHtml = ehUltimaFolhaGeral ? criarCarimboElaborador(nome, sigla, cargo) : "";
+        const botaoNovoCampoHtml = (!modoPreview && ehUltimaPaginaFotos) ? '<div style="text-align:center; margin-top:10px;"><button type="button" class="btn-adicionar-foto" onclick="adicionarCampo()">+ Adicionar Novo Campo</button></div>' : '';
+
+        paginasHTML += criarPaginaCabecalho(numPaginaAtual, assunto, data, unidade, local, equipamento, tag, tipoServico) +
+          '<section class="conteudo-pagina-campos">' + blocoCampos + '</section>' +
+          blocoConclusaoInline +
+          botaoNovoCampoHtml +
+          carimboHtml +
+          criarRodape(numPaginaAtual) +
+          '</article>';
+
+        numPaginaAtual++;
+      }
+
+      // 4. PÁGINA DEDICADA DE CONCLUSÃO
+      if (temTexto && !conclusaoJaRenderizada) {
+        const editableAttr = !modoPreview ? 'contenteditable="true"' : 'contenteditable="false"';
+
+        paginasHTML += criarPaginaCabecalho(numPaginaAtual, assunto, data, unidade, local, equipamento, tag, tipoServico) +
+          '<section class="secao-conclusao-texto">' +
+            '<h3>' + escaparHTML(tituloConc) + '</h3>' +
+            '<div class="caixa-texto-editavel-div" ' + editableAttr + ' oninput="salvarTextoConclusaoPagina(this)">' + formatarParagrafosABNT(textoConc) + '</div>' +
+          '</section>' +
+          criarCarimboElaborador(nome, sigla, cargo) +
+          criarRodape(numPaginaAtual) +
+          '</article>';
+      }
+
+      return paginasHTML;
+    }
+
+    function criarPaginaCabecalho(numPagina, assunto, data, unidade, local, equipamento, tag, tipoServico) {
+      let camposCompletos = "";
+      if (tipoRelatorio.includes("completo") && numPagina === 1) {
+        camposCompletos = '<section class="informacoes-relatorio">' +
+          '<div><strong>Local / Instalação</strong><span>' + escaparHTML(local) + '</span></div>' +
+          '<div><strong>Equipamento</strong><span>' + escaparHTML(equipamento) + '</span></div>' +
+          '<div><strong>TAG</strong><span>' + escaparHTML(tag) + '</span></div>' +
+          '<div><strong>Tipo de serviço</strong><span>' + escaparHTML(tipoServico) + '</span></div>' +
+        '</section>';
+      }
+
+      const logoContent = logoSelecionado 
+        ? '<img src="' + logoSelecionado + '" alt="Logo">' 
+        : '<span>LOGO</span>';
+
+      return '<article class="folha">' +
+        '<header class="cabecalho">' +
+          '<div class="logo-relatorio">' + logoContent + '</div>' +
+          '<div class="titulo-relatorio">' +
+            '<h2>RELATÓRIO FOTOGRÁFICO</h2>' +
+            '<div class="assunto">' + escaparHTML(assunto) + '</div>' +
+          '</div>' +
+          '<div class="data-unidade">' +
+            '<div class="celula-data">' + formatarData(data) + '</div>' +
+            '<div class="celula-unidade">' + escaparHTML(unidade) + '</div>' +
+          '</div>' +
+        '</header>' +
+        camposCompletos;
+    }
+
+    function criarBlocoCampoHTML(campo, idxReal, contadorFotoInicio, classeEscala) {
+      let contadorFoto = contadorFotoInicio;
+      const campoObj = campo || { descricao: "", fotos: [] };
+      const fotosValidas = (campoObj.fotos || []).filter(f => f && f.length > 0);
+      let itensParaExibir = [];
+
+      if (modoPreview) {
+        itensParaExibir = fotosValidas.map((foto, idx) => ({ foto: foto, isPlaceholder: false, idxFoto: idx }));
+      } else {
+        itensParaExibir = fotosValidas.map((foto, idx) => ({ foto: foto, isPlaceholder: false, idxFoto: idx }));
+        if (itensParaExibir.length < 3) {
+          itensParaExibir.push({ foto: "", isPlaceholder: true, idxFoto: itensParaExibir.length });
+        }
+      }
+
+      const qtdItens = Math.max(1, itensParaExibir.length);
+      let fotosHTML = "";
+
+      itensParaExibir.forEach((item) => {
+        const numFoto = contadorFoto++;
+        const numFormatado = String(numFoto).padStart(2, '0');
+        const textoLegenda = 'Foto ' + numFormatado;
+
+        const imgContent = item.foto 
+          ? '<img src="' + item.foto + '" alt="' + textoLegenda + '">' +
+            '<span class="legenda-foto-cracha">' + textoLegenda + '</span>'
+          : '<span>' + textoLegenda + '</span>';
+        
+        let botoes = "";
+        if (!modoPreview) {
+          if (item.isPlaceholder) {
+            botoes = '<div class="botoes-foto-item">' +
+              '<label class="btn-selecionar-mini">Adicionar' +
+                '<input type="file" accept="image/*" style="display:none;" onchange="selecionarFotoCampo(' + idxReal + ', ' + item.idxFoto + ', this.files); this.value=\'\';">' +
+              '</label>' +
+            '</div>';
+          } else {
+            botoes = '<div class="botoes-foto-item">' +
+              '<label class="btn-selecionar-mini">Trocar' +
+                '<input type="file" accept="image/*" style="display:none;" onchange="selecionarFotoCampo(' + idxReal + ', ' + item.idxFoto + ', this.files); this.value=\'\';">' +
+              '</label>' +
+              '<button type="button" class="btn-excluir-mini" onclick="removerFotoCampo(' + idxReal + ', ' + item.idxFoto + ')">✕</button>' +
+            '</div>';
+          }
+        }
+
+        fotosHTML += '<div class="item-foto">' +
+          '<div class="espaco-foto ' + classeEscala + '">' + imgContent + '</div>' +
+          botoes +
+        '</div>';
+      });
+
+      const btnRemoverCampo = (!modoPreview && campos.length > 1) 
+        ? '<button type="button" class="btn-remover-campo" onclick="removerCampo(' + idxReal + ')">Excluir Campo</button>'
+        : '';
+
+      const readonlyAttr = modoPreview ? 'readonly' : '';
+
+      const html = '<div class="bloco-campo ' + classeEscala + '">' +
+        '<div class="cabecalho-campo">' +
+          '<label><strong>Campo ' + String(idxReal + 1).padStart(2, '0') + ' - Observações:</strong></label>' +
+          btnRemoverCampo +
+        '</div>' +
+        '<div class="grade-fotos-campo" data-qtd="' + qtdItens + '">' + fotosHTML + '</div>' +
+        '<textarea class="descricao-campo" rows="1" placeholder="Digite a descrição deste campo..." ' + readonlyAttr + ' oninput="alterarDescricaoCampo(' + idxReal + ', this.value); ajustarTextarea(this);">' + escaparHTML(campoObj.descricao) + '</textarea>' +
+      '</div>';
+
+      return { html: html, proximoContador: contadorFoto };
+    }
+
+    function criarCarimboElaborador(nome, sigla, cargo) {
+      const siglaFormatada = sigla ? " – " + escaparHTML(sigla) : "";
+      return '<div class="carimbo-elaborador">' +
+        '<div><strong>Elaborado por:</strong></div>' +
+        '<div>' + escaparHTML(nome) + siglaFormatada + '</div>' +
+        '<div>' + escaparHTML(cargo) + '</div>' +
+      '</div>';
+    }
+
+    function criarRodape(numPagina) {
+      return '<footer class="rodape">Página ' + String(numPagina).padStart(2, '0') + '</footer>';
+    }
+
+    function escaparHTML(texto) {
+      if (!texto) return "";
+      return String(texto).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    function formatarData(data) {
+      if (!data) return "";
+      const partes = data.split("-"); // O input date retorna no formato YYYY-MM-DD
+      return partes.length === 3 ? partes[2] + "/" + partes[1] + "/" + partes[0] : data;
+    }
+
+    async function salvarRelatorioLocal() {
+      salvarDadosPadrao();
+
+      const objetoRelatorio = {
+        tipoRelatorio: tipoRelatorio,
+        logo: logoSelecionado,
+        assunto: document.getElementById("assunto").value,
+        data: document.getElementById("data").value,
+        unidade: document.getElementById("unidade").value,
+        local: document.getElementById("local").value,
+        equipamento: document.getElementById("equipamento").value,
+        tag: document.getElementById("tag").value,
+        tipoServico: document.getElementById("tipoServico").value,
+        textoIntroducao: document.getElementById("textoIntroducao").value,
+        tituloIntroducao: document.getElementById("tituloIntroducao").value,
+        subtituloIntroducao: document.getElementById("subtituloIntroducao").value,
+        textoConclusao: document.getElementById("textoConclusao").value,
+        tituloConclusao: document.getElementById("tituloConclusao").value,
+        nome: document.getElementById("nome").value,
+        sigla: document.getElementById("sigla").value,
+        cargo: document.getElementById("cargo").value,
+        campos: campos
+      };
+
+      if (relatorioIdAtual) {
+        objetoRelatorio.id = relatorioIdAtual;
+      }
+
+      try {
+        const idSalvo = await salvarRelatorioNoDB(objetoRelatorio);
+        relatorioIdAtual = idSalvo;
+        alert("Relatório salvo com sucesso no seu aparelho!");
+      } catch (err) {
+        alert("Erro ao salvar o relatório localmente: " + err);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      const params = new URLSearchParams(window.location.search);
+      const idParam = params.get("id");
+      
+      if (idParam) {
+        try {
+          const relatorio = await obterRelatorioDoDB(idParam);
+          if (relatorio) {
+            relatorioIdAtual = relatorio.id;
+            iniciarRelatorio(relatorio.tipoRelatorio || "simplificado");
+            logoSelecionado = relatorio.logo || "";
+            atualizarPreviewLogo();
+
+            document.getElementById("assunto").value = relatorio.assunto || "";
+            document.getElementById("data").value = relatorio.data || "";
+            document.getElementById("unidade").value = relatorio.unidade || "";
+            document.getElementById("local").value = relatorio.local || "";
+            document.getElementById("equipamento").value = relatorio.equipamento || "";
+            document.getElementById("tag").value = relatorio.tag || "";
+            document.getElementById("tipoServico").value = relatorio.tipoServico || "";
+            document.getElementById("textoIntroducao").value = relatorio.textoIntroducao || "";
+            document.getElementById("tituloIntroducao").value = relatorio.tituloIntroducao || "1. INTRODUÇÃO";
+            document.getElementById("subtituloIntroducao").value = relatorio.subtituloIntroducao || "";
+            document.getElementById("textoConclusao").value = relatorio.textoConclusao || "";
+            document.getElementById("tituloConclusao").value = relatorio.tituloConclusao || "3. CONCLUSÃO";
+            document.getElementById("nome").value = relatorio.nome || "";
+            document.getElementById("sigla").value = relatorio.sigla || "";
+            document.getElementById("cargo").value = relatorio.cargo || "";
+            
+            if (relatorio.campos) {
+              campos = relatorio.campos.map(c => ({
+                descricao: c.descricao || "",
+                fotos: (c.fotos || []).filter(f => f && f.length > 0)
+              }));
+            } else {
+              campos = [];
+            }
+            abrirRelatorio();
+          }
+        } catch (e) {
+          console.error("Erro ao carregar relatório:", e);
+        }
+      } else {
+        const ultimoLogo = localStorage.getItem("ultimoLogo");
+        if (ultimoLogo) {
+          logoSelecionado = ultimoLogo;
+          atualizarPreviewLogo();
+        }
+        carregarDadosPadrao();
+      }
+    });
+  </script>
+</body>
+</html>

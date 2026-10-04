@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1976d2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/estilo.css">
+  <title>FotoRelatório</title>
+</head>
+<body>
+  <main class="tela-inicial">
+    <section class="cartao-inicial">
+      <!-- CAIXA PARA IMAGEM PERSONALIZADA DO APLICATIVO -->
+      <div class="caixa-imagem-app">
+        <!-- Substitua o link do src pela URL da sua imagem -->
+        <img src="inicial.jpg" alt="FotoRelatório App" id="imgApp">
+      </div>
+
+      <h1>FotoRelatório</h1>
+      <p>Relatório Fotográfico</p>
+
+      <div class="botoes-inicio">
+        <button type="button" onclick="novoRelatorio()">Novo Relatório</button>
+        <button type="button" onclick="meusRelatorios()">Meus Relatórios</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    function novoRelatorio() {
+      window.location.href = "novoRelatorio.html";
+    }
+    function meusRelatorios() {
+      window.location.href = "meusRelatorios.html";
+    }
+
+    // Registrar Service Worker para PWA Offline
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('SW registrado com sucesso:', reg.scope))
+          .catch(err => console.error('Erro ao registrar SW:', err));
+      });
+    }
+  </script>
+</body>
+</html>
